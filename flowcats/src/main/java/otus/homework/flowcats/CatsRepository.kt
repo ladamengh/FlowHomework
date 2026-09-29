@@ -1,6 +1,8 @@
 package otus.homework.flowcats
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class CatsRepository(
@@ -8,10 +10,17 @@ class CatsRepository(
     private val refreshIntervalMs: Long = 5000
 ) {
 
-    fun listenForCatFacts() = flow {
+    fun listenForCatFacts(): Flow<Result<Fact>> = flow {
         while (true) {
-            val latestNews = catsService.getCatFact()
-            emit(latestNews)
+            val result = try {
+                Result.Success(catsService.getCatFact())
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Result.Error(e)
+            }
+
+            emit(result)
             delay(refreshIntervalMs)
         }
     }
