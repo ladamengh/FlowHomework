@@ -27,7 +27,8 @@ class SampleInteractor(
     fun task1(): Flow<String> {
         return sampleRepository.produceNumbers()
             .map { it * 5 }
-            .filter { it > 20 && it.mod(2) != 0 }
+            .filter { it > 20 }
+            .filter { it.mod(2) != 0 }
             .map { "$it won" }
             .take(3)
     }

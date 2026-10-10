@@ -4,7 +4,9 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -19,14 +21,21 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         lifecycleScope.launch {
-            catsViewModel.catsStateFlow.collect { state ->
-                state.fact?.let { view.populate(it) }
-                state.error?.let { error ->
-                    Toast.makeText(
-                        this@MainActivity,
-                        error.message ?: error.javaClass.simpleName,
-                        Toast.LENGTH_LONG
-                    ).show()
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    catsViewModel.catsStateFlow.collect { state ->
+                        state.fact?.let { view.populate(it) }
+                    }
+                }
+
+                launch {
+                    catsViewModel.errorEvents.collect { error ->
+                        Toast.makeText(
+                            this@MainActivity,
+                            error.message ?: error.javaClass.simpleName,
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                 }
             }
         }
